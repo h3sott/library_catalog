@@ -1,0 +1,30 @@
+# Секреты
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Poetry/virtualenv
+.venv/
+*.egg-info/
+
+# PyCharm
+.idea/
+
+# Тесты и линтеры
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+
+# Alembic (миграции коммитим, но не кэш)
+alembic/__pycache__/
+
+# OS
+.DS_Store
+Thumbs.db
