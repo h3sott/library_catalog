@@ -2,7 +2,7 @@ from typing import Optional, List
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.library_catalog.data.models.book import Book
+from library_catalog.data.models.book import Book
 from .base_repository import BaseRepository
 
 
