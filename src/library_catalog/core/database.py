@@ -27,3 +27,7 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
             raise
         finally:
             await session.close()
+
+async def dispose_engine() -> None:
+    """Корректное закрытие всех соединений при остановке приложения."""
+    await engine.dispose()
