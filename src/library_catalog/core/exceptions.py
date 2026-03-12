@@ -1,5 +1,6 @@
 from typing import Any
-
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 
 class AppException(Exception):
 
@@ -16,4 +17,23 @@ class NotFoundException(AppException):
         super().__init__(
             message=f"{resource} with identifier '{identifier}' not found",
             status_code=404,
+        )
+
+
+
+def register_exception_handlers(app: FastAPI) -> None:
+    """Регистрация обработчиков исключений."""
+
+    @app.exception_handler(AppException)
+    async def app_exception_handler(request: Request, exc: AppException):
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={"message": exc.message, "details": exc.details},
+        )
+
+    @app.exception_handler(NotFoundException)
+    async def not_found_exception_handler(request: Request, exc: NotFoundException):
+        return JSONResponse(
+            status_code=404,
+            content={"message": exc.message},
         )
