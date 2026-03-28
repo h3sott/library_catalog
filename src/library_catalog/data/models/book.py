@@ -48,6 +48,7 @@ class Book(Base):
     available: Mapped[bool] = mapped_column(
         Boolean,
         default=True,
+        nullable=False,
         index=True,
     )
 
