@@ -10,6 +10,9 @@ from ..exceptions import (
     InvalidPagesException,
     OpenLibraryException,
 )
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class BookService:
@@ -179,9 +182,7 @@ class BookService:
 
         except OpenLibraryException:
 
-            import logging
 
-            logger = logging.getLogger(__name__)
 
             logger.warning(
                 "Failed to enrich book data from Open Library",
