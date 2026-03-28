@@ -30,10 +30,3 @@ def register_exception_handlers(app: FastAPI) -> None:
             status_code=exc.status_code,
             content={"message": exc.message, "details": exc.details},
         )
-
-    @app.exception_handler(NotFoundException)
-    async def not_found_exception_handler(request: Request, exc: NotFoundException):
-        return JSONResponse(
-            status_code=404,
-            content={"message": exc.message},
-        )
