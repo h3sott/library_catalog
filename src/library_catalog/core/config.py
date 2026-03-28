@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     environment: Literal["development", "staging", "production"]
     debug: bool = False
     database_url: PostgresDsn
-    database_pool_size: int = 20  # <- ОБЯЗАТЕЛЬНО
+    database_pool_size: int = 20
     api_v1_prefix: str = "/api/v1"
     log_level: str = "INFO"
     docs_url: str = "/docs"
@@ -19,10 +19,6 @@ class Settings(BaseSettings):
     cors_origins: list[str] = ["*"]
     openlibrary_base_url: str = "https://openlibrary.org"
     openlibrary_timeout: float = 10.0
-
-    api_v1_prefix: str = "/api/v1"
-    log_level: str = "INFO"
-
 
     model_config = SettingsConfigDict(
         env_file=".env",
