@@ -11,6 +11,7 @@ from ..exceptions import (
     OpenLibraryException,
 )
 import logging
+from sqlalchemy.exc import IntegrityError
 
 logger = logging.getLogger(__name__)
 
@@ -48,16 +49,21 @@ class BookService:
         extra = await self._enrich_book_data(book_data)
 
         # 4. Создание
-        book = await self.book_repo.create(
-            title=book_data.title,
-            author=book_data.author,
-            year=book_data.year,
-            genre=book_data.genre,
-            pages=book_data.pages,
-            isbn=book_data.isbn,
-            description=book_data.description,
-            extra=extra,
-        )
+        try:
+            book = await self.book_repo.create(
+                title=book_data.title,
+                author=book_data.author,
+                year=book_data.year,
+                genre=book_data.genre,
+                pages=book_data.pages,
+                isbn=book_data.isbn,
+                description=book_data.description,
+                extra=extra,
+            )
+        except IntegrityError as e:
+            if "isbn" in str(e.orig):
+                raise BookAlreadyExistsException(book_data.isbn)
+            raise
 
         return BookMapper.to_show_book(book)
 
