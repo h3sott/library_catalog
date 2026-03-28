@@ -42,7 +42,7 @@ class BookRepository(BaseRepository[Book]):
         """Найти книгу по ISBN."""
         stmt = select(Book).where(Book.isbn == isbn)
         result = await self.session.execute(stmt)
-        return result.scalars().first()
+        return result.scalar_one_or_none()
 
     async def count_by_filters(
             self,
@@ -55,13 +55,13 @@ class BookRepository(BaseRepository[Book]):
         """Подсчитать количество книг по фильтрам."""
         stmt = select(func.count()).select_from(Book)
 
-        if title:
+        if title is not None:
             stmt = stmt.where(Book.title.ilike(f"%{title}%"))
-        if author:
+        if author is not None:
             stmt = stmt.where(Book.author.ilike(f"%{author}%"))
-        if genre:
+        if genre is not None:
             stmt = stmt.where(Book.genre == genre)
-        if year:
+        if year is not None:
             stmt = stmt.where(Book.year == year)
         if available is not None:
             stmt = stmt.where(Book.available == available)
