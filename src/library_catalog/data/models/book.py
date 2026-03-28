@@ -28,7 +28,7 @@ class Book(Base):
         index=True,
     )
 
-    year: Mapped[str] = mapped_column(
+    year: Mapped[int] = mapped_column(
         Integer,
         nullable=False,
         index=True,
