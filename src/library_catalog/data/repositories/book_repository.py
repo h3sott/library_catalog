@@ -1,8 +1,7 @@
-from typing import Optional, List
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from library_catalog.data.models.book import Book
+from ..models.book import Book
 from .base_repository import BaseRepository
 
 
@@ -47,11 +46,11 @@ class BookRepository(BaseRepository[Book]):
 
     async def count_by_filters(
             self,
-            title: Optional[str] = None,
-            author: Optional[str] = None,
-            genre: Optional[str] = None,
-            year: Optional[int] = None,
-            available: Optional[bool] = None,
+            title: str | None = None,
+            author: str | None = None,
+            genre: str | None = None,
+            year: int | None = None,
+            available: bool | None = None,
     ) -> int:
         """Подсчитать количество книг по фильтрам."""
         stmt = select(func.count()).select_from(Book)
