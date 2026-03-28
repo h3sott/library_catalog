@@ -23,13 +23,13 @@ class BookRepository(BaseRepository[Book]):
 
         stmt = select(Book)
 
-        if title:
+        if title is not None:
             stmt = stmt.where(Book.title.ilike(f"%{title}%"))
-        if author:
+        if author is not None:
             stmt = stmt.where(Book.author.ilike(f"%{author}%"))
-        if genre:
+        if genre is not None:
             stmt = stmt.where(Book.genre == genre)
-        if year:
+        if year is not None:
             stmt = stmt.where(Book.year == year)
         if available is not None:
             stmt = stmt.where(Book.available == available)
