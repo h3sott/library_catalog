@@ -4,6 +4,8 @@ from pydantic import BaseModel, Field
 class OpenLibrarySearchDoc(BaseModel):
     """Документ из поиска Open Library."""
 
+    model_config = {"populate_by_name": True}
+
     title: str
     author_name: list[str] | None = Field(None, alias="author_name")
     cover_i: int | None = Field(None, alias="cover_i")
@@ -12,8 +14,6 @@ class OpenLibrarySearchDoc(BaseModel):
     language: list[str] | None = None
     ratings_average: float | None = Field(None, alias="ratings_average")
 
-    class Config:
-        populate_by_name = True
 
 
 class OpenLibrarySearchResponse(BaseModel):
