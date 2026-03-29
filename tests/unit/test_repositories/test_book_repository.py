@@ -3,30 +3,9 @@ import uuid
 import pytest
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
-
+from tests.helpers import make_book_kwargs
 from library_catalog.data.models.book import Book
 from library_catalog.data.repositories.book_repository import BookRepository
-
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
-def make_book_kwargs(**overrides) -> dict:
-    """Return minimal valid kwargs for creating a Book."""
-    defaults = dict(
-        title="Clean Code",
-        author="Robert C. Martin",
-        year=2008,
-        genre="Programming",
-        pages=431,
-        available=True,
-        isbn=None,
-        description=None,
-        extra=None,
-    )
-    defaults.update(overrides)
-    return defaults
 
 
 # ---------------------------------------------------------------------------
