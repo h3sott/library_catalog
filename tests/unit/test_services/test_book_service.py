@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 import pytest
 from uuid import uuid4
 from unittest.mock import AsyncMock
-
+from tests.helpers import make_mock_book
 from library_catalog.domain.services.book_service import BookService
 from library_catalog.domain.exceptions import (
     BookNotFoundException,
@@ -41,19 +41,7 @@ class TestBookService:
         book_repo.find_by_isbn.return_value = None
 
         # Мок возвращаемой книги
-        mock_book = AsyncMock()
-        mock_book.book_id = uuid4()
-        mock_book.title = "Clean Code"
-        mock_book.author = "Robert Martin"
-        mock_book.year = 2008
-        mock_book.genre = "Programming"
-        mock_book.pages = 464
-        mock_book.available = True
-        mock_book.isbn = "978-0132350884"
-        mock_book.description = None
-        mock_book.extra = {"cover_url": "http://example.com/cover.jpg"}
-        mock_book.created_at = datetime.now(timezone.utc)
-        mock_book.updated_at = datetime.now(timezone.utc)
+        mock_book = make_mock_book(extra={"cover_url": "http://example.com/cover.jpg"})
         book_repo.create.return_value = mock_book
 
         service = self._make_service(book_repo=book_repo, ol_client=ol_client)
