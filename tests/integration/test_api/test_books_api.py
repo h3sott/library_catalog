@@ -232,3 +232,48 @@ class TestBooksIntegration:
         # DELETE
         response = await client.delete(f"/api/v1/books/{book_id}")
         assert response.status_code == 204
+
+    async def test_filter_books_by_title(self, client: AsyncClient):
+        """Тест фильтрации книг по названию."""
+        await client.post("/api/v1/books/", json={
+            "title": "Python Book", "author": "Author",
+            "year": 2020, "genre": "Programming", "pages": 300,
+        })
+        await client.post("/api/v1/books/", json={
+            "title": "Java Book", "author": "Author",
+            "year": 2020, "genre": "Programming", "pages": 300,
+        })
+
+        response = await client.get("/api/v1/books/?title=Python")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert all("Python" in item["title"] for item in data["items"])
+
+    async def test_pagination(self, client: AsyncClient):
+        """Тест пагинации."""
+        for i in range(5):
+            await client.post("/api/v1/books/", json={
+                "title": f"Book {i}", "author": "Author",
+                "year": 2020, "genre": "Fiction", "pages": 100,
+            })
+
+        response = await client.get("/api/v1/books/?page=1&page_size=2")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["items"]) <= 2
+        assert data["page"] == 1
+
+    async def test_filter_books_by_genre(self, client: AsyncClient):
+        """Тест фильтрации книг по жанру."""
+        await client.post("/api/v1/books/", json={
+            "title": "Fiction Book", "author": "Author",
+            "year": 2020, "genre": "Fiction", "pages": 200,
+        })
+
+        response = await client.get("/api/v1/books/?genre=Fiction")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert all(item["genre"] == "Fiction" for item in data["items"])
