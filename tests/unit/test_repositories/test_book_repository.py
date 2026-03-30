@@ -107,6 +107,14 @@ class TestUpdate:
 
         assert result is None
 
+    async def test_updated_at_changes_on_update(self, repo: BookRepository, book: Book):
+        import asyncio
+        original_updated_at = book.updated_at
+
+        await asyncio.sleep(0.01)
+        updated = await repo.update(book.book_id, title="New Title")
+
+        assert updated.updated_at > original_updated_at
 
 # ---------------------------------------------------------------------------
 # delete
