@@ -51,3 +51,6 @@ def make_book_service(book_repo=None, ol_client=None) -> BookService:
         book_repository=book_repo,
         openlibrary_client=ol_client,
     )
+
+def make_isbn() -> str:
+    return f"978-{uuid4().int % 10**10:010d}"
