@@ -2,6 +2,8 @@ from datetime import datetime, timezone
 from unittest.mock import MagicMock
 from uuid import uuid4
 from library_catalog.data.models.book import Book
+from unittest.mock import AsyncMock
+from library_catalog.domain.services.book_service import BookService
 
 def make_book_kwargs(**overrides) -> dict:
     """Return minimal valid kwargs for creating a Book."""
@@ -38,3 +40,14 @@ def make_mock_book(**overrides):
     for key, value in overrides.items():
         setattr(mock_book, key, value)
     return mock_book
+
+def make_book_service(book_repo=None, ol_client=None) -> BookService:
+    if book_repo is None:
+        book_repo = AsyncMock()
+    if ol_client is None:
+        ol_client = AsyncMock()
+        ol_client.enrich.return_value = {}
+    return BookService(
+        book_repository=book_repo,
+        openlibrary_client=ol_client,
+    )

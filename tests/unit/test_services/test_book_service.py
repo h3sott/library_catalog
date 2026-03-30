@@ -7,30 +7,19 @@ import pytest
 from uuid import uuid4
 from unittest.mock import AsyncMock, MagicMock
 from library_catalog.data.models.book import Book
-from tests.helpers import make_mock_book
 from library_catalog.domain.services.book_service import BookService
 from library_catalog.domain.exceptions import (
     BookNotFoundException,
     BookAlreadyExistsException,
 )
 from library_catalog.api.v1.schemas.book import BookCreate, BookUpdate
-
+from tests.helpers import make_mock_book, make_book_service
 
 @pytest.mark.asyncio
 class TestBookService:
     """Unit тесты для BookService."""
 
-    def _make_service(self, book_repo=None, ol_client=None):
-        """Создать сервис с моками."""
-        if book_repo is None:
-            book_repo = AsyncMock()
-        if ol_client is None:
-            ol_client = AsyncMock()
-            ol_client.enrich.return_value = {}
-        return BookService(
-            book_repository=book_repo,
-            openlibrary_client=ol_client,
-        )
+
 
     async def test_create_book_success(self):
         """Тест успешного создания книги."""
@@ -45,7 +34,7 @@ class TestBookService:
         mock_book = make_mock_book(extra={"cover_url": "http://example.com/cover.jpg"})
         book_repo.create.return_value = mock_book
 
-        service = self._make_service(book_repo=book_repo, ol_client=ol_client)
+        service = make_book_service(book_repo=book_repo, ol_client=ol_client)
 
         book_data = BookCreate(
             title="Clean Code",
@@ -70,7 +59,7 @@ class TestBookService:
         book_repo = AsyncMock()
         book_repo.find_by_isbn.return_value = MagicMock(spec=Book)
 
-        service = self._make_service(book_repo=book_repo)
+        service = make_book_service(book_repo=book_repo)
 
         book_data = BookCreate(
             title="Book 1",
@@ -91,7 +80,7 @@ class TestBookService:
         book_repo = AsyncMock()
         book_repo.get_by_id.return_value = None
 
-        service = self._make_service(book_repo=book_repo)
+        service = make_book_service(book_repo=book_repo)
 
         # Act & Assert
         with pytest.raises(BookNotFoundException):
@@ -103,7 +92,7 @@ class TestBookService:
         book_repo = AsyncMock()
         book_repo.delete.return_value = False
 
-        service = self._make_service(book_repo=book_repo)
+        service = make_book_service(book_repo=book_repo)
 
         # Act & Assert
         with pytest.raises(BookNotFoundException):
@@ -115,7 +104,7 @@ class TestBookService:
         book_repo = AsyncMock()
         book_repo.get_by_id.return_value = None
 
-        service = self._make_service(book_repo=book_repo)
+        service = make_book_service(book_repo=book_repo)
 
         # Act & Assert
         with pytest.raises(BookNotFoundException):
@@ -128,7 +117,7 @@ class TestBookService:
         mock_book = make_mock_book(isbn=None)
         book_repo.create.return_value = mock_book
 
-        service = self._make_service(book_repo=book_repo)
+        service = make_book_service(book_repo=book_repo)
 
         book_data = BookCreate(
             title="Clean Code",
@@ -157,7 +146,7 @@ class TestBookService:
         mock_book = make_mock_book(extra=None)
         book_repo.create.return_value = mock_book
 
-        service = self._make_service(book_repo=book_repo, ol_client=ol_client)
+        service = make_book_service(book_repo=book_repo, ol_client=ol_client)
 
         book_data = BookCreate(
             title="Clean Code",
@@ -179,7 +168,7 @@ class TestBookService:
         """Тест валидации year > current_year."""
         from library_catalog.domain.exceptions import InvalidYearException
 
-        service = self._make_service()
+        service = make_book_service()
 
         book_data = BookCreate(
             title="Future Book",
@@ -196,7 +185,7 @@ class TestBookService:
         """Тест валидации pages <= 0."""
         from library_catalog.domain.exceptions import InvalidPagesException
 
-        service = self._make_service()
+        service = make_book_service()
 
         book_data = BookCreate(
             title="Empty Book",
@@ -218,7 +207,7 @@ class TestBookService:
         book_repo.get_by_id.return_value = existing
         book_repo.update.return_value = updated
 
-        service = self._make_service(book_repo=book_repo)
+        service = make_book_service(book_repo=book_repo)
 
         # Act
         result = await service.update_book(uuid4(), BookUpdate(title="New Title"))
@@ -235,7 +224,7 @@ class TestBookService:
         book_repo.find_by_filters.return_value = books
         book_repo.count_by_filters.return_value = 2
 
-        service = self._make_service(book_repo=book_repo)
+        service = make_book_service(book_repo=book_repo)
 
         # Act
         result, total = await service.search_books(title="Code")
@@ -253,7 +242,7 @@ class TestBookService:
         book_repo.find_by_filters.return_value = []
         book_repo.count_by_filters.return_value = 0
 
-        service = self._make_service(book_repo=book_repo)
+        service = make_book_service(book_repo=book_repo)
 
         # Act
         result, total = await service.search_books(title="Nonexistent")
