@@ -40,9 +40,16 @@ async def test_db(db_engine) -> AsyncGenerator[AsyncSession, None]:
 
 
 @pytest_asyncio.fixture(scope="function")
-async def client(test_db: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
+async def client(test_db: AsyncSession, db_engine) -> AsyncGenerator[AsyncClient, None]:
     async def override_get_db():
-        yield test_db
+        async with db_engine.connect() as conn:
+            await conn.begin_nested()
+            session = AsyncSession(bind=conn, expire_on_commit=False)
+            try:
+                yield session
+            finally:
+                await session.close()
+                await conn.rollback()
 
     app.dependency_overrides[get_db] = override_get_db
 
