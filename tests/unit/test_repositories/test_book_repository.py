@@ -3,7 +3,7 @@ import uuid
 import pytest
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
-from tests.helpers import make_book_kwargs
+from tests.helpers import make_book_kwargs, make_isbn
 from library_catalog.data.models.book import Book
 from library_catalog.data.repositories.book_repository import BookRepository
 
@@ -140,7 +140,7 @@ class TestDelete:
 class TestGetAll:
     async def test_returns_created_books(self, repo: BookRepository):
         for i in range(3):
-            await repo.create(**make_book_kwargs(title=f"Book {i}", isbn=f"isbn-all-{i}"))
+            await repo.create(**make_book_kwargs(title=f"Book {i}", isbn=make_isbn()))
 
         books = await repo.get_all()
 
@@ -148,7 +148,7 @@ class TestGetAll:
 
     async def test_limit_is_respected(self, repo: BookRepository):
         for i in range(5):
-            await repo.create(**make_book_kwargs(title=f"Lim {i}", isbn=f"isbn-lim-{i}"))
+            await repo.create(**make_book_kwargs(title=f"Lim {i}", isbn=make_isbn()))
 
         page = await repo.get_all(limit=2)
 
@@ -156,7 +156,7 @@ class TestGetAll:
 
     async def test_offset_returns_different_page(self, repo: BookRepository):
         for i in range(4):
-            await repo.create(**make_book_kwargs(title=f"Off {i}", isbn=f"isbn-off-{i}"))
+            await repo.create(**make_book_kwargs(title=f"Off {i}", isbn=make_isbn()))
 
         first = {b.book_id for b in await repo.get_all(limit=2, offset=0)}
         second = {b.book_id for b in await repo.get_all(limit=2, offset=2)}
@@ -185,30 +185,30 @@ class TestFindByFilters:
 
     async def test_filter_by_genre(self, repo: BookRepository):
         await repo.create(**make_book_kwargs(title="Genre Book", genre="Fiction"))
-        await repo.create(**make_book_kwargs(title="Other Book", genre="Science", isbn="isbn-sci"))
+        await repo.create(**make_book_kwargs(title="Other Book", genre="Science", isbn=make_isbn()))
 
         results = await repo.find_by_filters(genre="Fiction")
 
         assert all(b.genre == "Fiction" for b in results)
 
     async def test_filter_by_year(self, repo: BookRepository):
-        await repo.create(**make_book_kwargs(title="Old Book", year=1999, isbn="isbn-1999"))
-        await repo.create(**make_book_kwargs(title="New Book", year=2020, isbn="isbn-2020"))
+        await repo.create(**make_book_kwargs(title="Old Book", year=1999, isbn=make_isbn()))
+        await repo.create(**make_book_kwargs(title="New Book", year=2020, isbn=make_isbn()))
 
         results = await repo.find_by_filters(year=1999)
 
         assert all(b.year == 1999 for b in results)
 
     async def test_filter_by_available_true(self, repo: BookRepository):
-        await repo.create(**make_book_kwargs(title="Available", available=True, isbn="isbn-av"))
-        await repo.create(**make_book_kwargs(title="Unavailable", available=False, isbn="isbn-unav"))
+        await repo.create(**make_book_kwargs(title="Available", available=True, isbn=make_isbn()))
+        await repo.create(**make_book_kwargs(title="Unavailable", available=False, isbn=make_isbn()))
 
         results = await repo.find_by_filters(available=True)
 
         assert all(b.available is True for b in results)
 
     async def test_filter_by_available_false(self, repo: BookRepository):
-        await repo.create(**make_book_kwargs(title="Taken", available=False, isbn="isbn-taken"))
+        await repo.create(**make_book_kwargs(title="Taken", available=False, isbn=make_isbn()))
 
         results = await repo.find_by_filters(available=False)
 
@@ -217,11 +217,11 @@ class TestFindByFilters:
     async def test_combined_filters(self, repo: BookRepository):
         await repo.create(**make_book_kwargs(
             title="Python Cookbook", author="David Beazley",
-            genre="Programming", year=2013, isbn="isbn-pyc"
+            genre="Programming", year=2013, isbn=make_isbn()
         ))
         await repo.create(**make_book_kwargs(
             title="Fluent Python", author="Luciano Ramalho",
-            genre="Programming", year=2015, isbn="isbn-fp"
+            genre="Programming", year=2015, isbn=make_isbn()
         ))
 
         results = await repo.find_by_filters(genre="Programming", year=2013)
@@ -237,7 +237,7 @@ class TestFindByFilters:
     async def test_limit_and_offset_in_filters(self, repo: BookRepository):
         for i in range(5):
             await repo.create(**make_book_kwargs(
-                title=f"Filter Pag {i}", genre="Mystery", isbn=f"isbn-myst-{i}"
+                title=f"Filter Pag {i}", genre="Mystery", isbn=make_isbn()
             ))
 
         first = await repo.find_by_filters(genre="Mystery", limit=2, offset=0)
@@ -257,25 +257,25 @@ class TestCountByFilters:
     async def test_counts_all_books(self, repo: BookRepository):
         initial = await repo.count_by_filters()
 
-        await repo.create(**make_book_kwargs(isbn="isbn-cnt-1"))
-        await repo.create(**make_book_kwargs(isbn="isbn-cnt-2", title="Another"))
+        await repo.create(**make_book_kwargs(isbn=make_isbn()))
+        await repo.create(**make_book_kwargs(isbn=make_isbn(), title="Another"))
 
         total = await repo.count_by_filters()
 
         assert total == initial + 2
 
     async def test_counts_by_genre(self, repo: BookRepository):
-        await repo.create(**make_book_kwargs(genre="History", isbn="isbn-hist-1"))
-        await repo.create(**make_book_kwargs(genre="History", isbn="isbn-hist-2", title="B"))
-        await repo.create(**make_book_kwargs(genre="Math", isbn="isbn-math-1", title="C"))
+        await repo.create(**make_book_kwargs(genre="History", isbn=make_isbn()))
+        await repo.create(**make_book_kwargs(genre="History", isbn=make_isbn(), title="B"))
+        await repo.create(**make_book_kwargs(genre="Math", isbn=make_isbn(), title="C"))
 
         count = await repo.count_by_filters(genre="History")
 
         assert count == 2
 
     async def test_counts_by_year(self, repo: BookRepository):
-        await repo.create(**make_book_kwargs(year=2000, isbn="isbn-y2k-1"))
-        await repo.create(**make_book_kwargs(year=2000, isbn="isbn-y2k-2", title="B"))
+        await repo.create(**make_book_kwargs(year=2000, isbn=make_isbn()))
+        await repo.create(**make_book_kwargs(year=2000, isbn=make_isbn(), title="B"))
 
         count = await repo.count_by_filters(year=2000)
 
@@ -288,10 +288,10 @@ class TestCountByFilters:
 
     async def test_combined_filters_count(self, repo: BookRepository):
         await repo.create(**make_book_kwargs(
-            genre="Physics", available=True, isbn="isbn-phys-av"
+            genre="Physics", available=True, isbn=make_isbn()
         ))
         await repo.create(**make_book_kwargs(
-            genre="Physics", available=False, isbn="isbn-phys-unav", title="B"
+            genre="Physics", available=False, isbn=make_isbn(), title="B"
         ))
 
         count = await repo.count_by_filters(genre="Physics", available=True)
