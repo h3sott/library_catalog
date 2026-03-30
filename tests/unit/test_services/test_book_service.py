@@ -5,7 +5,8 @@ from datetime import datetime, timezone
 
 import pytest
 from uuid import uuid4
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, MagicMock
+from library_catalog.data.models.book import Book
 from tests.helpers import make_mock_book
 from library_catalog.domain.services.book_service import BookService
 from library_catalog.domain.exceptions import (
@@ -67,7 +68,7 @@ class TestBookService:
         """Тест создания с существующим ISBN."""
         # Arrange
         book_repo = AsyncMock()
-        book_repo.find_by_isbn.return_value = AsyncMock()  # книга уже есть
+        book_repo.find_by_isbn.return_value = MagicMock(spec=Book)
 
         service = self._make_service(book_repo=book_repo)
 

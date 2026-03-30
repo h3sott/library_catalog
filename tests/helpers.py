@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
-from unittest.mock import AsyncMock
+from unittest.mock import MagicMock
 from uuid import uuid4
-
+from library_catalog.data.models.book import Book
 
 def make_book_kwargs(**overrides) -> dict:
     """Return minimal valid kwargs for creating a Book."""
@@ -21,8 +21,8 @@ def make_book_kwargs(**overrides) -> dict:
 
 
 def make_mock_book(**overrides):
-    """Return AsyncMock that mimics a Book ORM object."""
-    mock_book = AsyncMock()
+    """Return MagicMock that mimics a Book ORM object."""
+    mock_book = MagicMock(spec=Book)
     mock_book.book_id = uuid4()
     mock_book.title = "Clean Code"
     mock_book.author = "Robert Martin"
