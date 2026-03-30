@@ -277,3 +277,20 @@ class TestBooksIntegration:
         assert response.status_code == 200
         data = response.json()
         assert all(item["genre"] == "Fiction" for item in data["items"])
+
+    async def test_create_book_year_in_future_returns_400(self, client: AsyncClient):
+        """Тест что год > current_year возвращает 400 от сервиса."""
+        from datetime import datetime
+        next_year = datetime.now().year + 1
+
+        book_data = {
+            "title": "Future Book",
+            "author": "Author",
+            "year": next_year,
+            "genre": "Fiction",
+            "pages": 200,
+        }
+
+        response = await client.post("/api/v1/books/", json=book_data)
+
+        assert response.status_code == 400
