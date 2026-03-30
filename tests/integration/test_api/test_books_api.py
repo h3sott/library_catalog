@@ -4,11 +4,81 @@ test_books_api.py - Integration тесты для Books API.
 
 import pytest
 from httpx import AsyncClient
-
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from library_catalog.data.models.book import Book
 
 
 class TestBooksIntegration:
     """Integration тесты для Books API."""
+
+    async def test_create_book_persisted_in_db(
+            self, client: AsyncClient, test_db: AsyncSession
+    ):
+        """Тест что созданная книга реально сохранилась в БД."""
+        book_data = {
+            "title": "Persisted Book",
+            "author": "Author",
+            "year": 2020,
+            "genre": "Fiction",
+            "pages": 200,
+        }
+
+        response = await client.post("/api/v1/books/", json=book_data)
+        assert response.status_code == 201
+        book_id = response.json()["book_id"]
+
+        # Проверить напрямую в БД
+        result = await test_db.execute(
+            select(Book).where(Book.book_id == book_id)
+        )
+        book = result.scalar_one_or_none()
+        assert book is not None
+        assert book.title == "Persisted Book"
+
+    async def test_delete_book_removed_from_db(
+            self, client: AsyncClient, test_db: AsyncSession
+    ):
+        """Тест что удалённая книга удалена из БД."""
+        book_data = {
+            "title": "To Delete",
+            "author": "Author",
+            "year": 2020,
+            "genre": "Fiction",
+            "pages": 200,
+        }
+        create_response = await client.post("/api/v1/books/", json=book_data)
+        book_id = create_response.json()["book_id"]
+
+        await client.delete(f"/api/v1/books/{book_id}")
+
+        result = await test_db.execute(
+            select(Book).where(Book.book_id == book_id)
+        )
+        book = result.scalar_one_or_none()
+        assert book is None
+
+    async def test_update_book_persisted_in_db(
+            self, client: AsyncClient, test_db: AsyncSession
+    ):
+        """Тест что обновление книги сохранилось в БД."""
+        book_data = {
+            "title": "Original",
+            "author": "Author",
+            "year": 2020,
+            "genre": "Fiction",
+            "pages": 200,
+        }
+        create_response = await client.post("/api/v1/books/", json=book_data)
+        book_id = create_response.json()["book_id"]
+
+        await client.patch(f"/api/v1/books/{book_id}", json={"title": "Updated"})
+
+        result = await test_db.execute(
+            select(Book).where(Book.book_id == book_id)
+        )
+        book = result.scalar_one_or_none()
+        assert book.title == "Updated"
 
     async def test_create_book_success(self, client: AsyncClient):
         """Тест успешного создания книги."""
