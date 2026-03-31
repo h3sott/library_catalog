@@ -86,16 +86,6 @@ alembic upgrade head
 poetry run uvicorn library_catalog.main:app --reload --app-dir src
 ```
 
-### Переменные окружения
-
-```env
-ENVIRONMENT=development
-DEBUG=true
-DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/library_catalog
-API_V1_PREFIX=/api/v1
-LOG_LEVEL=INFO
-```
-
 ## API Документация
 
 После запуска доступна по адресам:

@@ -2,8 +2,18 @@ from uuid import UUID
 from ...api.v1.schemas.book import BookCreate, BookUpdate, ShowBook
 from ...data.repositories.book_repository import BookRepository
 from ...external.openlibrary.client import OpenLibraryClient
-from ..exceptions import *
 from ..mappers.book_mapper import BookMapper
+from ..exceptions import (
+    BookNotFoundException,
+    BookAlreadyExistsException,
+    InvalidYearException,
+    InvalidPagesException,
+    OpenLibraryException,
+)
+import logging
+from sqlalchemy.exc import IntegrityError
+
+logger = logging.getLogger(__name__)
 
 
 class BookService:
@@ -39,16 +49,21 @@ class BookService:
         extra = await self._enrich_book_data(book_data)
 
         # 4. Создание
-        book = await self.book_repo.create(
-            title=book_data.title,
-            author=book_data.author,
-            year=book_data.year,
-            genre=book_data.genre,
-            pages=book_data.pages,
-            isbn=book_data.isbn,
-            description=book_data.description,
-            extra=extra,
-        )
+        try:
+            book = await self.book_repo.create(
+                title=book_data.title,
+                author=book_data.author,
+                year=book_data.year,
+                genre=book_data.genre,
+                pages=book_data.pages,
+                isbn=book_data.isbn,
+                description=book_data.description,
+                extra=extra,
+            )
+        except IntegrityError as e:
+            if "isbn" in str(e.orig):
+                raise BookAlreadyExistsException(book_data.isbn)
+            raise
 
         return BookMapper.to_show_book(book)
 
@@ -82,7 +97,7 @@ class BookService:
 
         updated = await self.book_repo.update(
             book_id,
-            **book_data.dict(exclude_unset=True)
+            **book_data.model_dump(exclude_unset=True)
         )
 
         return BookMapper.to_show_book(updated)
@@ -173,9 +188,7 @@ class BookService:
 
         except OpenLibraryException:
 
-            import logging
 
-            logger = logging.getLogger(__name__)
 
             logger.warning(
                 "Failed to enrich book data from Open Library",

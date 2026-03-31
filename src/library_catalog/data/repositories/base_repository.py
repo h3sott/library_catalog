@@ -13,7 +13,7 @@ class BaseRepository(Generic[T]):
     async def create(self, **kwargs) -> T:
         obj = self.model(**kwargs)
         self.session.add(obj)
-        await self.session.commit()
+        await self.session.flush()
         await self.session.refresh(obj)
         return obj
 
@@ -28,7 +28,7 @@ class BaseRepository(Generic[T]):
         for key, value in kwargs.items():
             setattr(obj, key, value)
         self.session.add(obj)
-        await self.session.commit()
+        await self.session.flush()
         await self.session.refresh(obj)
         return obj
 
@@ -37,7 +37,7 @@ class BaseRepository(Generic[T]):
         if not obj:
             return False
         await self.session.delete(obj)
-        await self.session.commit()
+        await self.session.flush()
         return True
 
     async def get_all(
